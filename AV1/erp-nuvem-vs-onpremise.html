@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP em Nuvem vs On-Premise</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&amp;family=Space+Grotesk:wght@500;700&amp;family=Noto+Sans+SC:wght@300;400;500&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-misans-regular/font.css">
+    
+    <style>
+        :root {
+            --bg: #090A0F;
+            --surface: #12141D;
+            --surface-border: #1F2233;
+            --text: #F8FAFC;
+            --text-muted: #94A3B8;
+            --accent-cyan: #00F0FF;
+            --accent-purple: #8B5CF6;
+            --font-display: 'Space Grotesk', 'MiSans', sans-serif;
+            --font-body: 'Outfit', 'Noto Sans SC', sans-serif;
+        }
+
+        /* Viewport Scale Core */
+        html, body { margin: 0; padding: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        .slide {
+            width: 100vw; height: 100vh; height: 100dvh;
+            scroll-snap-align: start;
+            position: relative; display: flex;
+            align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background Effects */
+        .grid-bg {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+        .glow-mesh {
+            position: absolute; inset: 0;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+            z-index: 0;
+        }
+
+        .slide-inner {
+            width: 1280px; height: 720px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            position: relative;
+            transform-origin: center center;
+            display: flex; flex-direction: column;
+            padding: 48px 56px;
+            z-index: 2;
+        }
+
+        .slide-content {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Typography */
+        h1, h2, h3, .tag { font-family: var(--font-display); }
+        
+        .tag {
+            display: inline-block; padding: 6px 16px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 100px; font-size: 14px;
+            color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.05);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 24px; align-self: flex-start;
+        }
+
+        .title-slide h1 {
+            font-size: 72px; font-weight: 700; line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-slide .subtitle {
+            font-size: 28px; color: var(--text-muted);
+            max-width: 600px; line-height: 1.4;
+        }
+
+        h2 { font-size: 48px; margin-bottom: 40px; color: #fff; font-weight: 700; }
+        
+        p { font-size: 22px; line-height: 1.6; color: var(--text-muted); margin-bottom: 20px; }
+        
+        ul { list-style: none; margin-left: 0; }
+        li { 
+            font-size: 22px; line-height: 1.6; color: var(--text-muted); 
+            margin-bottom: 16px; padding-left: 32px; position: relative;
+        }
+        li::before {
+            content: '→'; position: absolute; left: 0;
+            color: var(--accent-purple); font-family: var(--font-display);
+        }
+
+        /* Layouts */
+        .split-layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+            align-items: center; height: 100%;
+        }
+
+        /* Components */
+        .glass-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px; padding: 40px;
+            position: relative; overflow: hidden;
+            height: 100%;
+            display: flex; flex-direction: column;
+        }
+        
+        .glass-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+            opacity: 0.5;
+        }
+
+        .glass-card.cyan::before {
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+        }
+
+        .card-icon {
+            width: 64px; height: 64px; border-radius: 16px;
+            background: rgba(139, 92, 246, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .glass-card.cyan .card-icon {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: rgba(0, 240, 255, 0.2);
+            color: var(--accent-cyan);
+        }
+
+        .glass-card h3 { font-size: 32px; margin-bottom: 24px; color: #fff; }
+
+        /* Tech Visuals */
+        .tech-visual {
+            width: 100%; height: 400px;
+            border: 1px dashed var(--surface-border);
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; background: rgba(255,255,255,0.01);
+        }
+        
+        .server-rack {
+            display: flex; flex-direction: column; gap: 16px; width: 200px;
+        }
+        .server-unit {
+            height: 48px; border: 1px solid var(--accent-cyan);
+            border-radius: 8px; background: rgba(0, 240, 255, 0.05);
+            display: flex; align-items: center; padding: 0 16px; gap: 12px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+        .server-light { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
+        .server-line { flex: 1; height: 4px; background: rgba(0, 240, 255, 0.2); border-radius: 2px; }
+
+        /* UI Elements */
+        .nav-dots {
+            position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 12px; z-index: 100;
+        }
+        .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s;
+        }
+        .dot.active { background: var(--accent-cyan); transform: scale(1.5); box-shadow: 0 0 10px var(--accent-cyan); }
+
+        .keyboard-hint {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            font-size: 14px; color: rgba(255,255,255,0.3); z-index: 100;
+            transition: opacity 0.5s; pointer-events: none;
+            font-family: var(--font-display); letter-spacing: 1px;
+        }
+
+        /* Animations */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+
+        .reveal-scale { opacity: 0; transform: scale(0.95); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
+        .reveal-scale:nth-child(2) { transition-delay: 0.2s; }
+
+        @media (max-width: 767px) {
+            html { scroll-snap-type: none; }
+            .slide { height: auto; min-height: 100svh; overflow: visible; scroll-snap-align: none; }
+            .slide-inner { width: 100% !important; height: auto !important; transform: none !important; padding: clamp(24px, 6vw, 40px); }
+            .split-layout { grid-template-columns: 1fr; gap: 40px; }
+            .nav-dots { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav-dots"></nav>
+
+    <!-- Slide 1: Title -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="glow-mesh"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout title-slide">
+                <div class="text-content">
+                    <div class="tag reveal">Desafio em Grupo</div>
+                    <h1 class="reveal">(ERP) em Nuvem vs On-Premise</h1>
+                    <p class="subtitle reveal">Trilha Técnico-Gestor: Explorando a evolução e impacto dos sistemas de gestão corporativa.</p>
+                </div>
+                <div class="visual-content reveal-scale">
+                    <div class="tech-visual" style="border-radius: 50%; width: 400px; height: 400px; margin: 0 auto; border-color: rgba(0, 240, 255, 0.3); box-shadow: inset 0 0 60px rgba(0, 240, 255, 0.05);">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+                        </svg>
+                        <div style="position: absolute; width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent); top: 50%; opacity: 0.5;"></div>
+                        <div style="position: absolute; height: 100%; width: 1px; background: linear-gradient(180deg, transparent, var(--accent-purple), transparent); left: 50%; opacity: 0.5;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <!-- Slide 1.5: Integrantes do Grupo -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div>
+                    <div class="tag reveal">A Equipe</div>
+                    <h2 class="reveal">Integrantes do Grupo</h2>
+                    <p class="reveal">Profissionais por trás da análise e proposta.</p>
+                </div>
+                <div class="reveal-scale">
+                    <div class="glass-card cyan" style="justify-content: center; align-items: flex-start; text-align: left;">
+                        <ul>
+                            <li style="color: #fff; font-size: 28px; margin-bottom: 24px;">Jefferson Moisés dos Santos Souza</li>
+                            <li style="color: #fff; font-size: 28px; margin-bottom: 24px;">Lorenzo Sanches da Silva</li>
+                            <li style="color: #fff; font-size: 28px; margin-bottom: 24px;">Rafael Costa Varela</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 2: Contextualização (NOVO) -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div>
+                    <div class="tag reveal">Cenário Atual</div>
+                    <h2 class="reveal">A Era da Digitalização</h2>
+                    <p class="reveal">Vivemos um processo intenso de transformação digital, onde a forma como operamos mudou drasticamente.</p>
+                    <ul class="reveal">
+                        <li><strong>Explosão de Dados:</strong> Geramos e utilizamos volumes de informações cada vez maiores todos os dias.</li>
+                        <li><strong>Infraestrutura Ágil:</strong> Modelos tradicionais já não suportam a necessidade de inovação rápida.</li>
+                        <li><strong>O Futuro é Cloud:</strong> A nuvem deixou de ser uma opção e tornou-se a base fundamental para a sustentabilidade.</li>
+                    </ul>
+                </div>
+                <div class="reveal-scale">
+                    <div class="tech-visual" style="border-radius: 24px; border-color: rgba(139, 92, 246, 0.3); box-shadow: inset 0 0 60px rgba(139, 92, 246, 0.05);">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            <div style="text-align: center; color: var(--text-muted); font-size: 18px;">
+                                Fluxo Contínuo de Dados
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Problema -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div>
+                    <div class="tag reveal">Contexto</div>
+                    <h2 class="reveal">O Dilema da Gestão</h2>
+                    <p class="reveal">Empresas modernas precisam decidir onde hospedar seu "cérebro" operacional. Essa escolha impacta diretamente <strong>custos</strong>, <strong>eficiência</strong> e <strong>escalabilidade</strong>.</p>
+                    <ul class="reveal">
+                        <li><strong>ERP em Nuvem (Cloud)</strong>: Menor custo inicial e alta flexibilidade.</li>
+                        <li><strong>ERP On-Premise (Local)</strong>: Exige infraestrutura interna e alta manutenção.</li>
+                    </ul>
+                </div>
+                <div class="reveal-scale">
+                    <div class="tech-visual">
+                        <div class="server-rack">
+                            <div class="server-unit"><div class="server-light"></div><div class="server-line"></div></div>
+                            <div class="server-unit"><div class="server-light"></div><div class="server-line"></div></div>
+                            <div class="server-unit"><div class="server-light" style="background:var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple);"></div><div class="server-line"></div></div>
+                            <div class="server-unit"><div class="server-light"></div><div class="server-line"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: Comparação -->
+    <section class="slide">
+        <div class="glow-mesh"></div>
+        <div class="slide-inner">
+            <div class="slide-content">
+                <div class="tag reveal">Análise</div>
+                <h2 class="reveal">Comparativo de Modelos</h2>
+                <div class="split-layout" style="height: auto; align-items: stretch;">
+                    
+                    <div class="glass-card cyan reveal-scale">
+                        <div class="card-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                        </div>
+                        <h3>ERP em Nuvem</h3>
+                        <ul>
+                            <li style="color: #fff">Acesso remoto de qualquer lugar</li>
+                            <li style="color: #fff">Implantação ágil e rápida</li>
+                            <li style="color: #fff">Menor custo de setup inicial</li>
+                            <li style="color: #fff">Atualizações automáticas do sistema</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card reveal-scale">
+                        <div class="card-icon" style="color: var(--accent-purple)">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                        </div>
+                        <h3>ERP On-Premise</h3>
+                        <ul>
+                            <li>Controle total dos dados locais</li>
+                            <li>Alta capacidade de personalização</li>
+                            <li>Alto custo inicial (servidores)</li>
+                            <li>Manutenção e equipe de TI própria</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: Exemplo Real -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div>
+                    <div class="tag reveal">Case de Mercado</div>
+                    <h2 class="reveal">Linx Enterprise</h2>
+                    <p class="reveal">A Linx oferece soluções robustas de ERP em nuvem projetadas para o crescimento escalável.</p>
+                    <ul class="reveal">
+                        <li>Permite acesso remoto em tempo real</li>
+                        <li>Reduz custos operacionais de TI</li>
+                        <li>Escala dinamicamente conforme a demanda</li>
+                        <li>Garante segurança com tecnologias modernas</li>
+                    </ul>
+                </div>
+                <div class="reveal-scale">
+                    <div class="glass-card cyan" style="justify-content: center; align-items: center; text-align: center;">
+                        <h3 style="font-size: 48px; color: var(--accent-cyan); margin-bottom: 16px;">LINX</h3>
+                        <p style="margin: 0;">Soluções SaaS Enterprise</p>
+                        <div style="margin-top: 32px; display: flex; gap: 16px;">
+                            <div style="padding: 12px 24px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">Varejo</div>
+                            <div style="padding: 12px 24px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">Indústria</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: O Problema Observado (Proposta Pt 1) -->
+    <section class="slide">
+        <div class="glow-mesh"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div class="reveal-scale">
+                    <div class="tech-visual" style="flex-direction: column; gap: 24px; border-color: rgba(239, 68, 68, 0.3); box-shadow: inset 0 0 60px rgba(239, 68, 68, 0.05);">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <div style="text-align: center;">
+                            <div style="font-family: var(--font-display); color: #fff; font-size: 20px; margin-bottom: 8px;">Exclusão Digital Infraestrutural</div>
+                            <div style="color: var(--text-muted); font-size: 16px;">Infraestruturas Frágeis & Risco de Dados</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="tag reveal">A Identificação</div>
+                    <h2 class="reveal">O Problema Observado</h2>
+                    <p class="reveal">O abismo digital impede o crescimento sustentável de pequenas entidades locais.</p>
+                    <ul class="reveal">
+                        <li><strong>Falta de Acesso:</strong> Pequenas empresas e ONGs operam com dados locais e planilhas manuais.</li>
+                        <li><strong>Barreira da Complexidade:</strong> A nuvem parece "superdimensionada" e inaplicável à sua realidade.</li>
+                        <li><strong>Desafio de Gestão:</strong> A dificuldade não é apenas técnica (configurar), mas sim financeira e de governança (sustentar).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: A Solução -->
+    <section class="slide">
+        <div class="grid-bg"></div>
+        <div class="slide-inner">
+            <div class="slide-content split-layout">
+                <div>
+                    <div class="tag reveal">A Solução</div>
+                    <h2 class="reveal">Projeto Cloud-Bridge</h2>
+                    <p class="reveal">Um Framework de Gestão e Implementação de Nuvem focado em custo zero ou reduzido.</p>
+                    <ul class="reveal">
+                        <li><strong>Automação (IaC):</strong> Implantação ágil com Terraform, Ansible e Docker (Deploy com "um botão").</li>
+                        <li><strong>Monitoramento FinOps:</strong> Painel simples de alertas de gastos para evitar cobranças surpresa.</li>
+                        <li><strong>Governança Simplificada:</strong> Framework de segurança focado em proteger dados sensíveis de ONGs.</li>
+                    </ul>
+                </div>
+                <div class="reveal-scale">
+                    <div class="glass-card cyan" style="justify-content: center; align-items: center; text-align: center;">
+                        <div class="card-icon" style="margin: 0 auto 24px auto;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        </div>
+                        <h3 style="font-size: 32px; color: var(--accent-cyan); margin-bottom: 16px;">Cloud-Bridge</h3>
+                        <p style="margin: 0; color: var(--text-muted);">Hub de Nuvem Comunitária</p>
+                        <div style="margin-top: 32px; display: flex; gap: 16px;">
+                            <div style="padding: 12px 24px; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; font-size: 14px;">IaC & Docker</div>
+                            <div style="padding: 12px 24px; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 8px; font-size: 14px;">Gestão FinOps</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: Impacto e Conclusão -->
+    <section class="slide">
+        <div class="glow-mesh"></div>
+        <div class="slide-inner">
+            <div class="slide-content" style="align-items: center; text-align: center;">
+                <div class="tag reveal">Resultado Esperado</div>
+                <h2 class="reveal" style="font-size: 56px; max-width: 800px; margin: 0 auto 48px auto;">O Impacto da Adoção</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; width: 100%;" class="reveal-scale">
+                    <div class="glass-card" style="padding: 32px; align-items: center;">
+                        <h3 style="font-size: 24px; color: var(--accent-cyan); margin-bottom: 16px;">Automação Total</h3>
+                        <p style="font-size: 16px; margin: 0; text-align: center;">Redução do erro humano na configuração de servidores com IaC.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 32px; align-items: center;">
+                        <h3 style="font-size: 24px; color: var(--accent-purple); margin-bottom: 16px;">Inclusão Digital</h3>
+                        <p style="font-size: 16px; margin: 0; text-align: center;">Viabilização técnica e financeira para pequenos negócios e ONGs em Salvador.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 32px; align-items: center;">
+                        <h3 style="font-size: 24px; color: #fff; margin-bottom: 16px;">Segurança & Gestão</h3>
+                        <p style="font-size: 16px; margin: 0; text-align: center;">Proteção ativa contra vazamentos e previsibilidade financeira garantida.</p>
+                    </div>
+                </div>
+
+                <p class="reveal" style="margin-top: 48px; font-size: 24px; max-width: 800px; color: #fff;">
+                    A tecnologia não deve ser uma barreira. Nosso modelo cria a <strong>ponte de gestão que falta</strong> para democratizar a Nuvem.
+                </p>
+                <div class="reveal" style="margin-top: 40px;">
+                    <a href="https://github.com/RafaCVarela/Cloud-Bridge" target="_blank" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: rgba(139, 92, 246, 0.1); border: 1px solid var(--accent-purple); border-radius: 100px; color: var(--accent-purple); text-decoration: none; font-family: var(--font-display); font-size: 20px; transition: all 0.3s; box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                        Acessar Repositório no GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="keyboard-hint">Use ↑↓ para navegar</div>
+
+
+<script>
+        class ScaleController {
+            constructor(refWidth = 1280, refHeight = 720) {
+                this.refW = refWidth;
+                this.refH = refHeight;
+                this.inners = document.querySelectorAll('.slide-inner');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+            isMobile() { return window.innerWidth < 768; }
+            resize() {
+                if (this.isMobile()) {
+                    this.inners.forEach(inner => { inner.style.transform = ''; });
+                    return;
+                }
+                const s = Math.min(window.innerWidth / this.refW, window.innerHeight / this.refH);
+                this.inners.forEach(inner => { inner.style.transform = `scale(${s})`; });
+            }
+        }
+
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.dots = document.querySelector('.nav-dots');
+                this.current = 0;
+                this.setupObserver();
+                this.setupKeyboard();
+                this.setupDots();
+                this.hideHintOnScroll();
+                
+                // Tilt Effect para Cards
+                document.querySelectorAll('.glass-card').forEach(el => {
+                    el.style.transformStyle = 'preserve-3d';
+                    el.style.transition = 'transform 0.1s ease';
+                    el.addEventListener('mousemove', e => {
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width - 0.5;
+                        const y = (e.clientY - rect.top) / rect.height - 0.5;
+                        el.style.transform = `perspective(1000px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
+                    });
+                    el.addEventListener('mouseleave', () => {
+                        el.style.transform = 'perspective(1000px) rotateY(0) rotateX(0)';
+                    });
+                });
+            }
+            setupObserver() {
+                const obs = new IntersectionObserver(entries => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) {
+                            e.target.classList.add('visible');
+                            this.current = [...this.slides].indexOf(e.target);
+                            this.updateDots();
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(s => obs.observe(s));
+            }
+            setupKeyboard() {
+                window.addEventListener('keydown', e => {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault(); this.go(this.current + 1);
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault(); this.go(this.current - 1);
+                    }
+                });
+            }
+            setupDots() {
+                this.slides.forEach((s, i) => {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.onclick = () => this.go(i);
+                    this.dots.appendChild(dot);
+                });
+                this.updateDots();
+            }
+            updateDots() {
+                this.dots.querySelectorAll('.dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === this.current);
+                });
+            }
+            go(i) {
+                if (i >= 0 && i < this.slides.length) {
+                    this.slides[i].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            hideHintOnScroll() {
+                const hint = document.querySelector('.keyboard-hint');
+                if (!hint) return;
+                let hidden = false;
+                window.addEventListener('scroll', () => {
+                    if (!hidden && window.scrollY > 50) {
+                        hint.style.opacity = '0';
+                        hidden = true;
+                    }
+                });
+            }
+        }
+        
+        new SlidePresentation();
+        new ScaleController();
+    </script>
+
+</body></html>
