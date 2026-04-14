@@ -1,0 +1,21 @@
+################################################################################
+# Cloud-Bridge — Arquivo de exemplo de variáveis
+# ATENÇÃO: Copie este arquivo para terraform.tfvars e preencha com seus dados.
+#          NUNCA faça commit do arquivo terraform.tfvars — ele contém segredos.
+################################################################################
+
+aws_region   = "sa-east-1"
+project_name = "cloud-bridge"
+environment  = "dev"
+org_name     = "Minha ONG / Empresa"
+
+# Rede
+vpc_cidr = "10.0.0.0/16"
+
+# Computação
+instance_type = "t2.micro"
+key_pair_name = "meu-key-pair"
+
+# Alertas de Custo (FinOps)
+alert_email                 = "responsavel@minhaong.org.br"
+billing_alert_threshold_usd = 1.0

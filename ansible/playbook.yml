@@ -1,0 +1,42 @@
+################################################################################
+# Cloud-Bridge — Ansible Playbook Principal
+# Configura e faz hardening de servidores para pequenas organizações
+################################################################################
+---
+- name: Cloud-Bridge — Configuração e Hardening de Servidores
+  hosts: cloud_bridge_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    cloud_bridge_version: "1.0.0"
+    timezone: "America/Bahia"
+
+  pre_tasks:
+    - name: Atualizar cache de pacotes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - role: common
+      tags: [common, hardening]
+    - role: docker
+      tags: [docker]
+    - role: monitoring
+      tags: [monitoring]
+
+  post_tasks:
+    - name: Verificar status do Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+      check_mode: true
+
+    - name: Exibir resumo da instalação
+      ansible.builtin.debug:
+        msg: |
+          ✅ Cloud-Bridge configurado com sucesso!
+          Servidor: {{ inventory_hostname }} ({{ ansible_host }})
+          IP: {{ ansible_default_ipv4.address }}
+          Acesse o painel de monitoramento em: http://{{ ansible_host }}:3000
