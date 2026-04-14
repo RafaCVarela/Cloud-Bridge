@@ -1,0 +1,12 @@
+################################################################################
+# Cloud-Bridge — Ansible Inventory (Exemplo)
+# Edite este arquivo com o IP do seu servidor após o terraform apply
+################################################################################
+
+[cloud_bridge_servers]
+# Substitua pelo IP obtido no output do Terraform (instance_public_ip)
+server1 ansible_host=SEU_IP_AQUI ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/meu-key-pair.pem
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

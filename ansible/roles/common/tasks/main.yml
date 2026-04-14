@@ -1,0 +1,108 @@
+################################################################################
+# Cloud-Bridge — Role: common
+# Hardening básico do sistema operacional (Ubuntu/Debian)
+################################################################################
+---
+# tasks/main.yml
+
+- name: Instalar pacotes essenciais de segurança
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+      - unattended-upgrades
+      - apt-listchanges
+      - logwatch
+      - auditd
+      - rkhunter
+    state: present
+
+- name: Configurar fuso horário
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Habilitar atualizações automáticas de segurança
+  ansible.builtin.template:
+    src: unattended-upgrades.conf.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configurar firewall UFW — política padrão
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Permitir SSH no firewall
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Permitir HTTP no firewall
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: Permitir HTTPS no firewall
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: Configurar Fail2Ban — proteção contra força bruta
+  ansible.builtin.template:
+    src: fail2ban-jail.conf.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
+- name: Iniciar e habilitar Fail2Ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: true
+
+- name: Desabilitar login root via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin no"
+    backup: true
+  notify: Restart sshd
+
+- name: Desabilitar autenticação por senha via SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    backup: true
+  notify: Restart sshd
+
+- name: Configurar limite de autenticações SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?MaxAuthTries"
+    line: "MaxAuthTries 3"
+  notify: Restart sshd
+
+- name: Criar diretório de logs do Cloud-Bridge
+  ansible.builtin.file:
+    path: /var/log/cloud-bridge
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Configurar rotação de logs
+  ansible.builtin.template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/cloud-bridge
+    owner: root
+    group: root
+    mode: "0644"

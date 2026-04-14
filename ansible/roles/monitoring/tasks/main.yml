@@ -1,0 +1,39 @@
+################################################################################
+# Cloud-Bridge — Role: monitoring
+# Instala Prometheus + Grafana via Docker Compose para monitoramento open-source
+################################################################################
+---
+# tasks/main.yml
+
+- name: Criar diretórios de configuração do monitoramento
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /opt/cloud-bridge/monitoring
+    - /opt/cloud-bridge/monitoring/prometheus
+    - /opt/cloud-bridge/monitoring/grafana
+
+- name: Copiar configuração do Prometheus
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /opt/cloud-bridge/monitoring/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copiar Docker Compose de monitoramento
+  ansible.builtin.template:
+    src: docker-compose.monitoring.yml.j2
+    dest: /opt/cloud-bridge/monitoring/docker-compose.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Iniciar stack de monitoramento
+  community.docker.docker_compose_v2:
+    project_src: /opt/cloud-bridge/monitoring
+    state: present

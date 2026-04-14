@@ -1,0 +1,120 @@
+################################################################################
+# Cloud-Bridge — Docker Compose Principal
+# Stack de aplicações conteinerizadas para pequenas organizações
+#
+# Uso:
+#   docker compose up -d          # Inicia todos os serviços
+#   docker compose logs -f        # Acompanha os logs
+#   docker compose down           # Para os serviços
+################################################################################
+
+services:
+  # ── Proxy Reverso com HTTPS automático ──────────────────────────────────────
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks:
+      - cloud-bridge-network
+    restart: unless-stopped
+
+  # ── Banco de Dados PostgreSQL ────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: cloud-bridge-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cloudbridge}
+      POSTGRES_USER: ${DB_USER:-cbadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD é obrigatório}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - cloud-bridge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-cbadmin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Cache Redis ──────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cloud-bridge-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD é obrigatório}
+    volumes:
+      - redis_data:/data
+    networks:
+      - cloud-bridge-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ── Aplicação Web Principal ──────────────────────────────────────────────────
+  app:
+    image: nginx:alpine
+    container_name: cloud-bridge-app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+    volumes:
+      - ./services/webapp:/usr/share/nginx/html:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cloud-bridge-network
+    restart: unless-stopped
+
+  # ── Backup Automático ────────────────────────────────────────────────────────
+  backup:
+    image: prodrigestivill/postgres-backup-local:latest
+    container_name: cloud-bridge-backup
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${DB_NAME:-cloudbridge}
+      POSTGRES_USER: ${DB_USER:-cbadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 3
+    volumes:
+      - backup_data:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cloud-bridge-network
+    restart: unless-stopped
+
+networks:
+  cloud-bridge-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  redis_data:
+  letsencrypt:
+  backup_data:
